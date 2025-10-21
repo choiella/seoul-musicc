@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>서울시 예술단 & 공연장 상관관계 시각화 (2024)</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #f4f7f9;
+      margin: 0;
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+    }
+    .left {
+      flex: 2.3; /* 살짝 넓힘 */
+      padding: 40px 60px; /* 오른쪽으로 여유 공간 확보 */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .right {
+      flex: 1;
+      background: white;
+      padding: 40px;
+      box-shadow: -5px 0 10px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      border-radius: 30px 0 0 30px;
+    }
+    h2 {
+      margin-bottom: 20px;
+      font-size: 1.6rem;
+      color: #222;
+      text-align: center;
+    }
+    #chart {
+      width: 90%; /* 중앙에 더 가깝게 조정 */
+      height: 165vh; /* 살짝 낮춰서 균형 */
+      margin: 0 auto;
+    }
+    .card {
+      background: #f9fafc;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .card h3 {
+      margin: 0;
+      color: #0077b6;
+    }
+    .card p {
+      margin: 6px 0 0;
+      color: #555;
+    }
+    footer {
+      text-align: center;
+      font-size: 1rem;
+      color: gray;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="left">
+    <h2>서울시 예술단과 자치구별 공연장</h2>
+    <div id="chart"></div>
+    <footer>2024년</footer>
+  </div>
+
+  <div class="right">
+    <h2>서울시 주요 예술단 현황</h2>
+    <div class="card">
+      <h3>🎻 서울시립교향악단</h3>
+      <p>단원 수: 99명 | 창단: 1948년</p>
+    </div>
+    <div class="card">
+      <h3>🎶 서울시합창단</h3>
+      <p>단원 수: 79명 | 창단: 1962년</p>
+    </div>
+    <div class="card">
+      <h3>💃 서울시무용단</h3>
+      <p>단원 수: 65명 | 창단: 1974년</p>
+    </div>
+    <div class="card">
+      <h3>🎭 서울시극단</h3>
+      <p>단원 수: 54명 | 창단: 1974년</p>
+    </div>
+    <div class="card">
+      <h3>🎼 서울시청소년국악단</h3>
+      <p>단원 수: 45명 | 창단: 1979년</p>
+    </div>
+  </div>
+
+  <script>
+    const data = [
+      {gu:"종로구", total:161, public:15, private:146},
+      {gu:"중구", total:29, public:13, private:16},
+      {gu:"용산구", total:12, public:5, private:7},
+      {gu:"성동구", total:8, public:3, private:5},
+      {gu:"광진구", total:16, public:4, private:12},
+      {gu:"동대문구", total:3, public:0, private:3},
+      {gu:"중랑구", total:1, public:1, private:0},
+      {gu:"성북구", total:14, public:6, private:8},
+      {gu:"강북구", total:6, public:4, private:2},
+      {gu:"도봉구", total:5, public:4, private:1},
+      {gu:"노원구", total:18, public:6, private:12},
+      {gu:"은평구", total:12, public:5, private:7},
+      {gu:"서대문구", total:8, public:4, private:4},
+      {gu:"마포구", total:34, public:6, private:28},
+      {gu:"양천구", total:8, public:3, private:5},
+      {gu:"강서구", total:10, public:6, private:4},
+      {gu:"구로구", total:12, public:5, private:7},
+      {gu:"금천구", total:5, public:2, private:3},
+      {gu:"영등포구", total:22, public:10, private:12},
+      {gu:"동작구", total:13, public:5, private:8},
+      {gu:"관악구", total:17, public:5, private:12},
+      {gu:"서초구", total:41, public:12, private:29},
+      {gu:"강남구", total:44, public:9, private:35},
+      {gu:"송파구", total:19, public:5, private:14},
+      {gu:"강동구", total:8, public:4, private:4}
+    ];
+
+    // 버블 간격 살짝 넓히기 (기존 10 → 14)
+    data.forEach((d,i) => {
+      d.artScale = 20 + i*14;
+    });
+
+    const pastelColors = [
+      '#FFD6BA','#FFBCB3','#FFC7A7','#FFDAC1','#E2F0CB',
+      '#B5EAD7','#C7CEEA','#F3C4FB','#FFE7F0','#FEE1A3',
+      '#E6E6FA','#D8BFD8','#FFB6C1','#FAFAD2','#B0E0E6',
+      '#F5DEB3','#C6E2FF','#E0FFFF','#FFF0F5','#F0FFF0',
+      '#F8EFD4','#E8EAF6','#FFFACD','#FBE9E7'
+    ];
+
+    const trace = {
+      x: data.map(d => d.total),
+      y: data.map(d => d.artScale),
+      text: data.map(d => d.gu),
+      mode: 'markers+text',
+      textposition: 'top center',
+      hovertext: data.map(d => 
+        `${d.gu}<br>총 공연장: ${d.total}개<br>공공공연장: ${d.public}개<br>민간공연장: ${d.private}개`
+      ),
+      hoverinfo: 'text',
+      marker: {
+        size: data.map(d => d.total * 1.2),
+        color: pastelColors,
+        sizemode: 'area',
+        line: { width: 1, color: '#aaa' }
+      }
+    };
+
+    const layout = {
+      xaxis: { title: "총 공연장 수", range: [0, Math.max(...data.map(d => d.total)) + 20] },
+      yaxis: { title: "공연장 규모", range: [0, 370] },
+      margin: { t: 40, l: 40, r: 20, b: 60 },
+      paper_bgcolor: '#ffffff',
+      plot_bgcolor: '#ffffff',
+      hovermode: "closest",
+      showlegend: false
+    };
+
+    Plotly.newPlot('chart', [trace], layout, {displayModeBar: false});
+  </script>
+</body>
+</html>
